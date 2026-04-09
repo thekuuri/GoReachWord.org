@@ -22,7 +22,7 @@ const navLinks = [
   { name: 'About', href: '#about' },
   { name: 'Programs', href: '#programs' },
   { name: 'Vision', href: '#vision' },
-  { name: 'Register', href: '#register' },
+  { name: 'Register', href: '#register', isModal: true },
   { name: 'Contact', href: '#contact' },
 ];
 
@@ -74,6 +74,7 @@ const areasOfOperation = [
 
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [formData, setFormData] = useState({
@@ -97,7 +98,7 @@ export default function App() {
     setLoading(true);
     setStatus(null);
     try {
-      const response = await fetch('http://localhost:8000/api/register', {
+      const response = await fetch('http://127.0.0.1:8000/api/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -150,8 +151,8 @@ export default function App() {
       <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-brand-primary rounded-full flex items-center justify-center text-white font-bold text-xl">G</div>
-            <span className={`font-display font-bold text-xl tracking-tight ${scrolled ? 'text-brand-primary' : 'text-white'}`}>GoReach Worldwide</span>
+            <img src="/logo.png" alt="GoReach Worldwide Logo" className="h-12 w-auto object-contain" />
+            <span className={`font-display font-bold text-xl tracking-tight hidden sm:block ${scrolled ? 'text-brand-primary' : 'text-white'}`}>GoReach Worldwide</span>
           </div>
           
           {/* Desktop Nav */}
@@ -159,7 +160,13 @@ export default function App() {
             {navLinks.map((link) => (
               <a 
                 key={link.name} 
-                href={link.href} 
+                href={link.href}
+                onClick={(e) => {
+                  if (link.isModal) {
+                    e.preventDefault();
+                    setIsRegisterModalOpen(true);
+                  }
+                }}
                 className={`text-sm font-medium transition-colors hover:text-brand-secondary ${scrolled ? 'text-slate-600' : 'text-white/90'}`}
               >
                 {link.name}
@@ -197,7 +204,13 @@ export default function App() {
                 <a 
                   key={link.name} 
                   href={link.href} 
-                  onClick={() => setIsMenuOpen(false)}
+                  onClick={(e) => {
+                    setIsMenuOpen(false);
+                    if (link.isModal) {
+                      e.preventDefault();
+                      setIsRegisterModalOpen(true);
+                    }
+                  }}
                   className="text-2xl font-display font-bold text-slate-800"
                 >
                   {link.name}
@@ -244,9 +257,12 @@ export default function App() {
               <a href="#about" className="bg-white text-brand-primary px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
                 Learn Our Mission <ArrowRight size={20} />
               </a>
-              <a href="#donate" className="bg-brand-secondary text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-brand-secondary/90 transition-all flex items-center justify-center gap-2">
-                Support the Harvest <Gift size={20} />
-              </a>
+              <button 
+                onClick={() => setIsRegisterModalOpen(true)}
+                className="bg-brand-secondary text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-brand-secondary/90 transition-all flex items-center justify-center gap-2 shadow-xl shadow-brand-secondary/20"
+              >
+                Register Now <ArrowRight size={20} />
+              </button>
             </div>
           </motion.div>
         </div>
@@ -420,149 +436,168 @@ export default function App() {
         </div>
       </section>
 
-      {/* Registration Section */}
-      <section id="register" className="py-24 bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <span className="text-brand-secondary font-bold tracking-wider uppercase text-sm">Join Us</span>
-            <h2 className="text-4xl font-display font-bold mt-2 text-slate-900">Register for a Meeting</h2>
-            <p className="text-slate-600 mt-4">Be part of the movement. Sign up for our upcoming conferences and mission trips.</p>
-          </div>
+      {/* Registration Modal */}
+      <AnimatePresence>
+        {isRegisterModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsRegisterModalOpen(false)}
+              className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            />
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden"
+            >
+              <button 
+                onClick={() => setIsRegisterModalOpen(false)}
+                className="absolute top-6 right-6 p-2 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 transition-colors z-10"
+              >
+                <X size={20} />
+              </button>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="bg-slate-50 p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100"
-          >
-            <form className="grid md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Full Name</label>
-                <input 
-                  required 
-                  type="text" 
-                  name="full_name"
-                  value={formData.full_name}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
-                  placeholder="Enter your full name" 
-                />
-              </div>
+              <div className="md:flex h-full max-h-[90vh] overflow-y-auto">
+                <div className="p-8 md:p-12 w-full">
+                  <div className="text-center mb-10">
+                    <span className="text-brand-secondary font-bold tracking-wider uppercase text-xs">Join Us</span>
+                    <h2 className="text-3xl font-display font-bold mt-2 text-slate-900">Register for a Meeting</h2>
+                    <p className="text-slate-500 mt-3 text-sm">Be part of the movement. Sign up for our upcoming conferences and mission trips.</p>
+                  </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Phone Number</label>
-                <input 
-                  required 
-                  type="tel" 
-                  name="phone_number"
-                  value={formData.phone_number}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
-                  placeholder="e.g. 0712345678" 
-                />
-              </div>
+                  <form className="grid md:grid-cols-2 gap-5" onSubmit={async (e) => {
+                    await handleSubmit(e);
+                    // Close modal on success if needed, or wait for user to see success message
+                  }}>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600">Full Name</label>
+                      <input 
+                        required 
+                        type="text" 
+                        name="full_name"
+                        value={formData.full_name}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all text-sm" 
+                        placeholder="Enter your full name" 
+                      />
+                    </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Email Address</label>
-                <input 
-                  required 
-                  type="email" 
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
-                  placeholder="name@example.com" 
-                />
-              </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600">Phone Number</label>
+                      <input 
+                        required 
+                        type="tel" 
+                        name="phone_number"
+                        value={formData.phone_number}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all text-sm" 
+                        placeholder="e.g. 0712345678" 
+                      />
+                    </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Age Group</label>
-                <select 
-                  required 
-                  name="age_group"
-                  value={formData.age_group}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none"
-                >
-                  <option value="">Select age group</option>
-                  <option value="under-18">Under 18</option>
-                  <option value="18-24">18 - 24</option>
-                  <option value="25-34">25 - 34</option>
-                  <option value="35-44">35 - 44</option>
-                  <option value="45-54">45 - 54</option>
-                  <option value="55+">55 and above</option>
-                </select>
-              </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600">Email Address</label>
+                      <input 
+                        required 
+                        type="email" 
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all text-sm" 
+                        placeholder="name@example.com" 
+                      />
+                    </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Designation</label>
-                <select 
-                  required 
-                  name="designation"
-                  value={formData.designation}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none"
-                >
-                  <option value="">Select designation</option>
-                  <option value="pastor">Pastor</option>
-                  <option value="student">Student</option>
-                  <option value="professional">Professional</option>
-                  <option value="business">Business Leader</option>
-                  <option value="missionary">Missionary</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600">Age Group</label>
+                      <select 
+                        required 
+                        name="age_group"
+                        value={formData.age_group}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none text-sm"
+                      >
+                        <option value="">Select age group</option>
+                        <option value="under-18">Under 18</option>
+                        <option value="18-24">18 - 24</option>
+                        <option value="25-34">25 - 34</option>
+                        <option value="35-44">35 - 44</option>
+                        <option value="45-54">45 - 54</option>
+                        <option value="55+">55 and above</option>
+                      </select>
+                    </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-bold text-slate-700">Location</label>
-                <input 
-                  required 
-                  type="text" 
-                  name="location"
-                  value={formData.location}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
-                  placeholder="City, Country" 
-                />
-              </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600">Designation</label>
+                      <select 
+                        required 
+                        name="designation"
+                        value={formData.designation}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none text-sm"
+                      >
+                        <option value="">Select designation</option>
+                        <option value="pastor">Pastor</option>
+                        <option value="student">Student</option>
+                        <option value="professional">Professional</option>
+                        <option value="business">Business Leader</option>
+                        <option value="missionary">Missionary</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
 
-              <div className="md:col-span-2 space-y-2">
-                <label className="text-sm font-bold text-slate-700">Select Meeting / Program</label>
-                <select 
-                  required 
-                  name="program"
-                  value={formData.program}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none"
-                >
-                  <option value="">Choose a meeting</option>
-                  <option value="missions">Short-term/Long-term Mission Trip</option>
-                  <option value="reboot">Reboot Leaders’ Conference</option>
-                  <option value="all-in">ALL IN Conference</option>
-                  <option value="all-in-youth">ALL IN Youth Conference</option>
-                  <option value="community">Community Service Project</option>
-                </select>
-              </div>
+                    <div className="space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600">Location</label>
+                      <input 
+                        required 
+                        type="text" 
+                        name="location"
+                        value={formData.location}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all text-sm" 
+                        placeholder="City, Country" 
+                      />
+                    </div>
 
-              {status && (
-                <div className={`md:col-span-2 p-4 rounded-xl text-sm font-bold ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                  {status.message}
+                    <div className="md:col-span-2 space-y-1.5">
+                      <label className="text-xs font-bold text-slate-600">Meeting / Program</label>
+                      <input 
+                        required 
+                        type="text" 
+                        name="program"
+                        value={formData.program}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all text-sm" 
+                        placeholder="Enter the meeting or program name" 
+                      />
+                    </div>
+
+                    {status && (
+                      <div className={`md:col-span-2 p-4 rounded-xl text-xs font-bold ${status.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+                        {status.message}
+                      </div>
+                    )}
+
+                    <div className="md:col-span-2 pt-2">
+                      <button 
+                        type="submit" 
+                        disabled={loading}
+                        className="w-full bg-brand-secondary text-white py-3.5 rounded-xl font-bold text-base hover:bg-brand-secondary/90 transition-all shadow-lg shadow-brand-secondary/10 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loading ? 'Processing...' : 'Complete Registration'} <ArrowRight size={18} />
+                      </button>
+                    </div>
+                  </form>
                 </div>
-              )}
-
-              <div className="md:col-span-2 pt-4">
-                <button 
-                  type="submit" 
-                  disabled={loading}
-                  className="w-full bg-brand-secondary text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-secondary/90 transition-all shadow-lg shadow-brand-secondary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? 'Processing...' : 'Complete Registration'} <ArrowRight size={20} />
-                </button>
               </div>
-            </form>
-          </motion.div>
-        </div>
-      </section>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* Contact Section */}
       <section id="contact" className="py-24 bg-slate-50">
@@ -641,8 +676,10 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-4 gap-12 mb-12">
             <div className="col-span-2">
-              <div className="flex items-center gap-2 mb-6">
-                <div className="w-10 h-10 bg-brand-primary rounded-full flex items-center justify-center text-white font-bold text-xl">G</div>
+              <div className="flex items-center gap-3 mb-6">
+                <div className="bg-white p-2 rounded-xl">
+                  <img src="/logo.png" alt="GoReach Worldwide Logo" className="h-10 w-auto" />
+                </div>
                 <span className="font-display font-bold text-2xl tracking-tight">GoReach Worldwide</span>
               </div>
               <p className="text-white/60 max-w-sm leading-relaxed mb-6">
@@ -663,7 +700,20 @@ export default function App() {
               <h4 className="font-display font-bold text-lg mb-6">Quick Links</h4>
               <ul className="space-y-4 text-white/60">
                 {navLinks.map(link => (
-                  <li key={link.name}><a href={link.href} className="hover:text-brand-secondary transition-colors">{link.name}</a></li>
+                  <li key={link.name}>
+                    <a 
+                      href={link.href} 
+                      onClick={(e) => {
+                        if (link.isModal) {
+                          e.preventDefault();
+                          setIsRegisterModalOpen(true);
+                        }
+                      }}
+                      className="hover:text-brand-secondary transition-colors"
+                    >
+                      {link.name}
+                    </a>
+                  </li>
                 ))}
                 <li><a href="#donate" className="hover:text-brand-secondary transition-colors">Donate</a></li>
               </ul>
