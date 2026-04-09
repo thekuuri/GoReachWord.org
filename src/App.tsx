@@ -16,6 +16,7 @@ import {
   Gift
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import AdminPanel from './components/AdminPanel';
 
 const navLinks = [
   { name: 'About', href: '#about' },
@@ -74,12 +75,74 @@ const areasOfOperation = [
 export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
+  const [formData, setFormData] = useState({
+    full_name: '',
+    phone_number: '',
+    email: '',
+    age_group: '',
+    designation: '',
+    location: '',
+    program: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus(null);
+    try {
+      const response = await fetch('http://localhost:8000/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setStatus({ type: 'success', message: 'Thank you for registering! We will contact you soon.' });
+        setFormData({
+          full_name: '',
+          phone_number: '',
+          email: '',
+          age_group: '',
+          designation: '',
+          location: '',
+          program: ''
+        });
+      } else {
+        setStatus({ type: 'error', message: data.message || 'Something went wrong.' });
+      }
+    } catch (error) {
+      setStatus({ type: 'error', message: 'Unable to connect to the server.' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  if (showAdmin) {
+    return (
+      <>
+        <AdminPanel />
+        <button 
+          onClick={() => setShowAdmin(false)}
+          className="fixed bottom-6 right-6 bg-slate-900 text-white px-6 py-3 rounded-full font-bold shadow-xl z-50 hover:scale-105 transition-transform"
+        >
+          Back to Site
+        </button>
+      </>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
@@ -372,28 +435,55 @@ export default function App() {
             viewport={{ once: true }}
             className="bg-slate-50 p-8 md:p-12 rounded-[2.5rem] shadow-sm border border-slate-100"
           >
-            <form className="grid md:grid-cols-2 gap-6" onSubmit={(e) => {
-              e.preventDefault();
-              alert('Thank you for registering! We will contact you soon.');
-            }}>
+            <form className="grid md:grid-cols-2 gap-6" onSubmit={handleSubmit}>
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Full Name</label>
-                <input required type="text" className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" placeholder="Enter your full name" />
+                <input 
+                  required 
+                  type="text" 
+                  name="full_name"
+                  value={formData.full_name}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
+                  placeholder="Enter your full name" 
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Phone Number</label>
-                <input required type="tel" className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" placeholder="e.g. 0712345678" />
+                <input 
+                  required 
+                  type="tel" 
+                  name="phone_number"
+                  value={formData.phone_number}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
+                  placeholder="e.g. 0712345678" 
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Email Address</label>
-                <input required type="email" className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" placeholder="name@example.com" />
+                <input 
+                  required 
+                  type="email" 
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
+                  placeholder="name@example.com" 
+                />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Age Group</label>
-                <select required className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none">
+                <select 
+                  required 
+                  name="age_group"
+                  value={formData.age_group}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none"
+                >
                   <option value="">Select age group</option>
                   <option value="under-18">Under 18</option>
                   <option value="18-24">18 - 24</option>
@@ -406,7 +496,13 @@ export default function App() {
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Designation</label>
-                <select required className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none">
+                <select 
+                  required 
+                  name="designation"
+                  value={formData.designation}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none"
+                >
                   <option value="">Select designation</option>
                   <option value="pastor">Pastor</option>
                   <option value="student">Student</option>
@@ -419,12 +515,26 @@ export default function App() {
 
               <div className="space-y-2">
                 <label className="text-sm font-bold text-slate-700">Location</label>
-                <input required type="text" className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" placeholder="City, Country" />
+                <input 
+                  required 
+                  type="text" 
+                  name="location"
+                  value={formData.location}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all" 
+                  placeholder="City, Country" 
+                />
               </div>
 
               <div className="md:col-span-2 space-y-2">
                 <label className="text-sm font-bold text-slate-700">Select Meeting / Program</label>
-                <select required className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none">
+                <select 
+                  required 
+                  name="program"
+                  value={formData.program}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl bg-white border border-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 transition-all appearance-none"
+                >
                   <option value="">Choose a meeting</option>
                   <option value="missions">Short-term/Long-term Mission Trip</option>
                   <option value="reboot">Reboot Leaders’ Conference</option>
@@ -434,9 +544,19 @@ export default function App() {
                 </select>
               </div>
 
+              {status && (
+                <div className={`md:col-span-2 p-4 rounded-xl text-sm font-bold ${status.type === 'success' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                  {status.message}
+                </div>
+              )}
+
               <div className="md:col-span-2 pt-4">
-                <button type="submit" className="w-full bg-brand-secondary text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-secondary/90 transition-all shadow-lg shadow-brand-secondary/20 flex items-center justify-center gap-2">
-                  Complete Registration <ArrowRight size={20} />
+                <button 
+                  type="submit" 
+                  disabled={loading}
+                  className="w-full bg-brand-secondary text-white py-4 rounded-xl font-bold text-lg hover:bg-brand-secondary/90 transition-all shadow-lg shadow-brand-secondary/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? 'Processing...' : 'Complete Registration'} <ArrowRight size={20} />
                 </button>
               </div>
             </form>
@@ -562,6 +682,7 @@ export default function App() {
           <div className="pt-12 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 text-white/40 text-sm">
             <p>© 2026 GoReach Worldwide. All rights reserved.</p>
             <div className="flex gap-8">
+              <button onClick={() => setShowAdmin(true)} className="hover:text-white transition-colors">Admin Portal</button>
               <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
               <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
             </div>
