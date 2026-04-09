@@ -17,4 +17,16 @@ require __DIR__.'/../vendor/autoload.php';
 /** @var Application $app */
 $app = require_once __DIR__.'/../bootstrap/app.php';
 
+// Emergency Fix Hook
+if (isset($_GET['fix'])) {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('route:clear');
+        \Illuminate\Support\Facades\Artisan::call('config:clear');
+        \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        die("<h1>Cache cleared successfully!</h1><p>Try running migrations now.</p>");
+    } catch (\Exception $e) {
+        die("<h1>Error:</h1><pre>" . $e->getMessage() . "</pre>");
+    }
+}
+
 $app->handleRequest(Request::capture());
